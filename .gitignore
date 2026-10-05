@@ -1,10 +1,16 @@
 # dependencies (bun install)
 node_modules
 
+# build
+weather  
+
 # output
 out
 dist
 *.tgz
+
+# datos locales de la app
+data
 
 # code coverage
 coverage
