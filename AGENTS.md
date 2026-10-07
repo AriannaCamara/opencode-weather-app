@@ -1,29 +1,38 @@
 # AGENTS.md
 
-CLI de clima construida en Bun. La app funciona: `index.ts` es el entry point
-(loop de menú + dispatch) y la lógica vive en `src/`. `README.md` es el spec
-(en español). Los extras de la revisión viven en `ideas-revision.md`.
+CLI de clima construida en Bun. La app funciona: `src/index.ts` es el entry
+point (`main()` + guardado) y la lógica vive en `src/` con la estructura por
+capas de `references/file-system.md` (actions/presentation/storage/types/api/
+utils). `README.md` es el spec (en español). Los extras de la revisión viven
+en `ideas-revision.md`.
 
 ## Estructura
 
-- `index.ts` — loop del menú, flujos por opción, manejo de errores.
-- `src/api.ts` — HTTP a Open-Meteo (geocoding, clima actual y pronóstico 7 días)
-  + parsers puros que lanzan `WeatherError`.
-- `src/cities.ts` — lista de ciudades, default, toggle de unidad.
-- `src/store.ts` — persistencia en `data/cities.json` (gitignored) con
-  `Bun.file`/`Bun.write`.
-- `src/ui.ts` — menú y renderizado (sin estado).
-- `src/colors.ts` — paleta ANSI respetando `NO_COLOR`/`FORCE_COLOR`/TTY.
-- `src/weatherCodes.ts` — código WMO → descripción en español.
-- `src/guards.ts`, `src/types.ts`, `src/input.ts` — helpers compartidos.
+- `src/index.ts` — `main()`: carga store, corre el loop, guarda al salir.
+- `src/actions/` — un flujo por opción del menú: `getWeather` (1 y 2),
+  `addCity` (3), `removeCity` (4), `setDefaultCity` (5), `forecast` (6),
+  `settings` (8), `listCities` (selección de ciudad para 4 y 5).
+- `src/presentation/` — `menu.ts` (render del menú + loop + dispatch),
+  `output.ts` (renderWeather/Forecast/CityList + success/error/warn/info),
+  `input.ts` (`createInput` + `isAffirmative`).
+- `src/storage/citiesStorage.ts` — mutaciones del store (add/remove/
+  setDefault/toggleUnit) + persistencia en `data/cities.json` (gitignored)
+  con `Bun.file`/`Bun.write`.
+- `src/types/` — `City.ts`, `Weather.ts` (incluye `Unit`), `Store.ts`,
+  `MenuOption.ts` (`MenuOutcome`).
+- `src/api/` — `client.ts` (`WeatherError` + `fetchJson`), `geocoding.ts`,
+  `weather.ts` (clima actual y pronóstico 7 días) + parsers puros.
+- `src/utils/` — `format.ts` (etiquetas/fechas/formatError), `constants.ts`,
+  `colors.ts` (paleta ANSI respetando `NO_COLOR`/`FORCE_COLOR`/TTY),
+  `weatherCodes.ts` (código WMO → español), `guards.ts`.
 - `*.test.ts` junto a cada módulo — tests de Bun.
 
 ## Runtime & tooling
 
 - **Bun only** (v1.4.2, `bun.lock`). Never `npm`/`npx`/`yarn`/`pnpm`.
-- Scripts en `package.json`: `build` (`bun build --compile index.ts --outfile
-  weather`), `start` (`bun run index.ts`), `dev` (`--watch`). Para otro
-  outfile/path (ej. `dist/weather.exe`) usá el comando directo.
+- Scripts en `package.json`: `build` (`bun build --compile src/index.ts
+  --outfile weather`), `start` (`bun run src/index.ts`), `dev` (`--watch`).
+  Para otro outfile/path (ej. `dist/weather.exe`) usá el comando directo.
 - **No hay linter ni formatter.** `tsc` bajo `strict` es la única verificación
   automática: `bunx tsc` (TypeScript **7.0.2**, el port nativo Go). Exits
   non-zero ante cualquier error.
@@ -51,8 +60,8 @@ CLI de clima construida en Bun. La app funciona: `index.ts` es el entry point
 `@types/bun` es la única fuente de tipos ambiente; preferir APIs nativas:
 
 - Persistencia (default city, ciudades guardadas): `Bun.file` + `Bun.write`,
-  no `fs`. `src/store.ts` ya usa `mkdir` de `node:fs/promises` para crear
-  `data/` antes de guardar.
+  no `fs`. `src/storage/citiesStorage.ts` ya usa `mkdir` de `node:fs/promises`
+  para crear `data/` antes de guardar.
 - HTTP con `fetch`; `Bun.sleep`, `Bun.$`, `Bun.serve` también disponibles.
 
 ## Conventions

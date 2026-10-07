@@ -34,3 +34,8 @@ export function createInput(): Input {
     },
   };
 }
+
+export function isAffirmative(answer: string): boolean {
+  const normalized = answer.trim().toLowerCase();
+  return normalized === "s" || normalized === "si" || normalized === "sí";
+}

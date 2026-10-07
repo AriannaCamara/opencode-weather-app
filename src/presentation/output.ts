@@ -1,29 +1,8 @@
-import { paint } from "./colors.ts";
-import type { City, CurrentWeather, Forecast, Store, Unit } from "./types.ts";
-import { weatherCodeLabel } from "./weatherCodes.ts";
-
-const BOX_WIDTH = 40;
-const BOX_LINE = "═".repeat(BOX_WIDTH);
-const TITLE = "WEATHER CLI";
-
-export function renderMenu(store: Store): void {
-  const line = paint(BOX_LINE, "cyan");
-  const padding = " ".repeat(Math.floor((BOX_WIDTH - TITLE.length) / 2));
-
-  console.log(`
-${line}
-${padding}${paint(TITLE, "bold", "cyan")}
-${line}
-${menuOption("1", "Clima de ciudad default")}
-${menuOption("2", `Clima de todas las ciudades (${store.cities.length})`)}
-${menuOption("3", "Buscar y agregar ciudad")}
-${menuOption("4", "Eliminar ciudad")}
-${menuOption("5", "Establecer ciudad default")}
-${menuOption("6", "Pronóstico 7 días")}
-${menuOption("8", `Ajustes (${paint(unitSymbol(store.unit), "yellow")})`)}
-${menuOption("9", "Salir")}
-${line}`);
-}
+import type { City } from "../types/City.ts";
+import type { CurrentWeather, Forecast } from "../types/Weather.ts";
+import { paint } from "../utils/colors.ts";
+import { cityLabel, formatTimestamp, weekdayLabel } from "../utils/format.ts";
+import { weatherCodeLabel } from "../utils/weatherCodes.ts";
 
 export function renderWeather(city: City, weather: CurrentWeather, isDefault: boolean): void {
   const star = isDefault ? paint(" ★", "yellow") : "";
@@ -80,33 +59,4 @@ export function warn(message: string): void {
 
 export function info(message: string): void {
   console.log(paint(message, "dim"));
-}
-
-export function cityLabel(city: City): string {
-  return [city.name, city.region, city.country].filter((part) => part !== null).join(", ");
-}
-
-export function unitLabel(unit: Unit): string {
-  return unit === "celsius" ? "Celsius (°C)" : "Fahrenheit (°F)";
-}
-
-function menuOption(number: string, label: string): string {
-  return `  ${paint(number, "cyan")}. ${label}`;
-}
-
-function unitSymbol(unit: Unit): string {
-  return unit === "celsius" ? "°C" : "°F";
-}
-
-// Día de la semana en español sin depender del locale del sistema.
-function weekdayLabel(date: string): string {
-  const weekdays = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
-  return weekdays[new Date(`${date}T00:00:00Z`).getUTCDay()] ?? "";
-}
-
-function formatTimestamp(iso: string): string {
-  const [date = "", time = ""] = iso.split("T");
-  const day = date.split("-").reverse().join("/");
-  const shortTime = time.slice(0, 5);
-  return `${day} ${shortTime}`.trim();
 }
