@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
-import { fetchCurrentWeather, searchCityByName, WeatherError } from "./src/api.ts";
+import { fetchCurrentWeather, fetchDailyForecast, searchCityByName, WeatherError } from "./src/api.ts";
 import { addCity, findCityById, removeCity, setDefaultCity, toggleUnit } from "./src/cities.ts";
 import { loadStore, saveStore } from "./src/store.ts";
 import { createInput } from "./src/input.ts";
 import type { Input } from "./src/input.ts";
-import { cityLabel, error, info, renderCityList, renderMenu, renderWeather, success, unitLabel, warn } from "./src/ui.ts";
+import { cityLabel, error, info, renderCityList, renderForecast, renderMenu, renderWeather, success, unitLabel, warn } from "./src/ui.ts";
 import type { City, Store } from "./src/types.ts";
 
 type MenuOutcome = "continue" | "exit";
@@ -54,6 +54,8 @@ async function dispatch(raw: string, store: Store, input: Input): Promise<MenuOu
         return await removeCityFlow(store, input);
       case "5":
         return await setDefaultFlow(store, input);
+      case "6":
+        return await showForecastFlow(store, input);
       case "8":
         return await settingsFlow(store, input);
       case "9":
@@ -74,6 +76,15 @@ async function showDefaultWeather(store: Store, input: Input): Promise<MenuOutco
 
   const weather = await fetchCurrentWeather(city, store.unit);
   renderWeather(city, weather, store.defaultCity?.id === city.id);
+  return "continue";
+}
+
+async function showForecastFlow(store: Store, input: Input): Promise<MenuOutcome> {
+  const city = store.defaultCity ?? (await askForNewCity(store, input));
+  if (!city) return "continue";
+
+  const forecast = await fetchDailyForecast(city, store.unit);
+  renderForecast(city, forecast, store.defaultCity?.id === city.id);
   return "continue";
 }
 

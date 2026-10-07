@@ -1,5 +1,5 @@
 import { asNumber, asString, isRecord } from "./guards.ts";
-import type { City, CurrentWeather, Unit } from "./types.ts";
+import type { City, CurrentWeather, DailyForecast, Forecast, Unit } from "./types.ts";
 
 const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
@@ -40,6 +40,53 @@ export function parseForecastResponse(payload: unknown): CurrentWeather {
   };
 }
 
+export function parseDailyForecastResponse(payload: unknown): Forecast {
+  if (!isRecord(payload) || !isRecord(payload.daily)) {
+    throw new WeatherError("La API del clima devolvió una respuesta con un formato desconocido.");
+  }
+
+  const daily = payload.daily;
+  const dates = daily.time;
+  if (!Array.isArray(dates)) {
+    throw new WeatherError("La API del clima devolvió una respuesta con un formato desconocido.");
+  }
+
+  const maxima = asArray(daily.temperature_2m_max);
+  const minima = asArray(daily.temperature_2m_min);
+  if (maxima === null || minima === null) {
+    throw new WeatherError("La API del clima no devolvió las temperaturas del pronóstico.");
+  }
+
+  const precipitation = asArray(daily.precipitation_probability_max);
+  const codes = asArray(daily.weathercode);
+
+  const days: DailyForecast[] = [];
+  for (let index = 0; index < dates.length; index++) {
+    const date = asString(dates[index]);
+    const tempMax = asNumber(maxima[index]);
+    const tempMin = asNumber(minima[index]);
+    if (date === null || tempMax === null || tempMin === null) continue;
+
+    days.push({
+      date,
+      tempMax,
+      tempMin,
+      precipitationProbability: asNumber(precipitation?.[index]),
+      weatherCode: asNumber(codes?.[index]),
+    });
+  }
+
+  if (days.length === 0) {
+    throw new WeatherError("La API del clima no devolvió días válidos en el pronóstico.");
+  }
+
+  const units = payload.daily_units;
+  return {
+    unit: (isRecord(units) ? asString(units.temperature_2m_max) : null) ?? "°",
+    days,
+  };
+}
+
 export async function searchCityByName(name: string): Promise<City | null> {
   const query = new URLSearchParams({ name, count: "1", language: "es", format: "json" });
   const payload = await fetchJson(`${GEOCODING_URL}?${query}`, "las coordenadas de la ciudad");
@@ -55,6 +102,18 @@ export async function fetchCurrentWeather(city: City, unit: Unit): Promise<Curre
   });
   const payload = await fetchJson(`${FORECAST_URL}?${query}`, "el clima");
   return parseForecastResponse(payload);
+}
+
+export async function fetchDailyForecast(city: City, unit: Unit): Promise<Forecast> {
+  const query = new URLSearchParams({
+    latitude: String(city.latitude),
+    longitude: String(city.longitude),
+    daily: "temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode",
+    temperature_unit: unit,
+    forecast_days: "7",
+  });
+  const payload = await fetchJson(`${FORECAST_URL}?${query}`, "el pronóstico");
+  return parseDailyForecastResponse(payload);
 }
 
 async function fetchJson(url: string, subject: string): Promise<unknown> {
@@ -75,6 +134,10 @@ async function fetchJson(url: string, subject: string): Promise<unknown> {
   } catch (error) {
     throw new WeatherError(`La respuesta de ${subject} no es un JSON válido.`, { cause: error });
   }
+}
+
+function asArray(value: unknown): unknown[] | null {
+  return Array.isArray(value) ? value : null;
 }
 
 function toCity(value: unknown): City | null {
