@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { WeatherError } from "./client.ts";
-import { parseDailyForecastResponse, parseForecastResponse } from "./weather.ts";
+import { WeatherError } from "../../src/api/client.ts";
+import { parseDailyForecastResponse, parseForecastResponse } from "../../src/api/weather.ts";
 
 // Fixture copiado de https://api.open-meteo.com/v1/forecast?latitude=45.41117&longitude=-75.69812&current=temperature_2m
 const FORECAST_OK = {

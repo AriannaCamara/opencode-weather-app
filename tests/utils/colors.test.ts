@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createPalette, shouldUseColor } from "./colors.ts";
+import { createPalette, shouldUseColor } from "../../src/utils/colors.ts";
 
 const ENV_KEYS = ["NO_COLOR", "FORCE_COLOR", "TERM"] as const;
 

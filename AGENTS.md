@@ -25,19 +25,25 @@ en `ideas-revision.md`.
 - `src/utils/` — `format.ts` (etiquetas/fechas/formatError), `constants.ts`,
   `colors.ts` (paleta ANSI respetando `NO_COLOR`/`FORCE_COLOR`/TTY),
   `weatherCodes.ts` (código WMO → español), `guards.ts`.
-- `*.test.ts` junto a cada módulo — tests de Bun.
+- `tests/` — todo el testing vive acá (espejo de `src/`: `actions/`,
+  `api/`, `presentation/`, `storage/`, `utils/` + `index.test.ts`).
+  `tests/helpers.ts` trae fixtures (OTTAWA/BARCELONA), `fakeInput`,
+  `captureConsole` y `mockFetch`. `src/` no tiene archivos `.test.ts`.
 
 ## Runtime & tooling
 
 - **Bun only** (v1.4.2, `bun.lock`). Never `npm`/`npx`/`yarn`/`pnpm`.
-- Scripts en `package.json`: `build` (`bun build --compile src/index.ts
-  --outfile weather`), `start` (`bun run src/index.ts`), `dev` (`--watch`).
-  Para otro outfile/path (ej. `dist/weather.exe`) usá el comando directo.
+- Scripts en `package.json`: `build` (**gateado**:
+  `bun test && bunx tsc && bun build --compile src/index.ts --outfile
+  weather` — si falla un test o el typecheck no se compila), `test`
+  (`bun test`), `typecheck` (`bunx tsc`), `start` (`bun run src/index.ts`),
+  `dev` (`--watch`). Para otro outfile/path (ej. `dist/weather.exe`) usá el
+  comando directo.
 - **No hay linter ni formatter.** `tsc` bajo `strict` es la única verificación
   automática: `bunx tsc` (TypeScript **7.0.2**, el port nativo Go). Exits
   non-zero ante cualquier error.
-- Tests: `bun test` corre todos los `*.test.ts`; archivo solo:
-  `bun test src/x.test.ts`; filtro por nombre: `bun test -t "nombre"`.
+- Tests: `bun test` corre todos los `tests/**/*.test.ts`; archivo solo:
+  `bun test tests/x/y.test.ts`; filtro por nombre: `bun test -t "nombre"`.
 
 ## tsconfig traps (todos activados, todos muerden)
 

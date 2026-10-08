@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { weatherCodeLabel } from "./weatherCodes.ts";
+import { weatherCodeLabel } from "../../src/utils/weatherCodes.ts";
 
 describe("weatherCodeLabel", () => {
   test("describe los códigos WMO conocidos", () => {

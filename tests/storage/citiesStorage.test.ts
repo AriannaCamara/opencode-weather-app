@@ -1,9 +1,9 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { City } from "../types/City.ts";
-import type { Store } from "../types/Store.ts";
+import type { City } from "../../src/types/City.ts";
+import type { Store } from "../../src/types/Store.ts";
 import {
   addCity,
   createDefaultStore,
@@ -14,7 +14,7 @@ import {
   saveStore,
   setDefaultCity,
   toggleUnit,
-} from "./citiesStorage.ts";
+} from "../../src/storage/citiesStorage.ts";
 
 function makeCity(id: number, name = `Ciudad ${id}`): City {
   return {
@@ -159,6 +159,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  mock.restore();
   await rm(dir, { recursive: true, force: true });
 });
 
@@ -197,6 +198,7 @@ describe("loadStore", () => {
   });
 
   test("devuelve el store por defecto si el JSON está corrupto", async () => {
+    spyOn(console, "warn").mockImplementation(() => {});
     await Bun.write(path, "{ esto no es json");
 
     expect(await loadStore(path)).toEqual({ defaultCity: null, cities: [], unit: "celsius" });

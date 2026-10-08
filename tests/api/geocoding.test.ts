@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { parseGeocodingResponse } from "./geocoding.ts";
+import { parseGeocodingResponse } from "../../src/api/geocoding.ts";
 
 // Fixture copiado de https://geocoding-api.open-meteo.com/v1/search?name=Ottawa&count=1&language=es
 const GEOCODING_OK = {
